@@ -56,7 +56,6 @@ public class TradingStrategy implements Runnable, PriceListener{
         ExecutionService stockService = null;
         String stockName = "TLSA";
         double limit = 55.0;
-        //PriceListener listener = new PriceClient(stockName, limit, stockService);
         TradingStrategy stockServer = new TradingStrategy(stockName, limit, stockService);
         executorService.submit(stockServer);
     }
