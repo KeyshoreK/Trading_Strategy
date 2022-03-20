@@ -23,7 +23,7 @@ public class TradingStrategyTest {
 
     @Before
     public void setUp(){
-        this.stock = "OXY";
+        this.stock = "FB";
         this.limit = 54.0;
     }
 
