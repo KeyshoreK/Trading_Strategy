@@ -3,7 +3,11 @@ package com.acme.mytrader.strategy;
 import com.acme.mytrader.execution.ExecutionService;
 import com.acme.mytrader.price.PriceListener;
 import com.acme.mytrader.price.PriceSource;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,6 +27,8 @@ public class TradingStrategy implements Runnable, PriceListener{
 
     private PriceSource priceSource;
 
+    private static final Logger logger = LogManager.getLogger(TradingStrategy.class);
+
     public TradingStrategy(String stock, double limit, ExecutionService service) {
         this.stock = stock;
         this.limit = limit;
@@ -37,15 +43,30 @@ public class TradingStrategy implements Runnable, PriceListener{
             double newValue = 54.00;
             //monitor stock prices and update the listener,
             //if stock has moved out of range.
-            priceUpdate(stock, newValue);
+            try{
+                priceUpdate(stock, newValue);
+                logger.info("updated stock with new value.");
+            }catch (Exception ex){
+                if (logger.isEnabled(Level.DEBUG)){
+                    logger.debug("unable to update the stock" + ex);
+                }else{
+                    logger.error("unable to update the stock" + ex);
+                }
+                throw new StockException("unable to update the stock");
+            }
         }
     }
 
     @Override
     public void priceUpdate(String security, double price) {
-        int quantity = 100;
         if (security.equalsIgnoreCase(stock) && price < limit){
-            service.buy(security, price, quantity);
+            service.buy(security, price, 100);
+        }
+    }
+
+    static class StockException extends RuntimeException {
+        public StockException(String message){
+            super(message);
         }
     }
 
@@ -54,7 +75,7 @@ public class TradingStrategy implements Runnable, PriceListener{
         ExecutorService executorService = Executors.newFixedThreadPool(cores);
         //Instantiate the class object from third party library.
         ExecutionService stockService = null;
-        String stockName = "TLSA";
+        String stockName = "ACME:EUR";
         double limit = 55.0;
         //PriceListener listener = new PriceClient(stockName, limit, stockService);
         TradingStrategy stockServer = new TradingStrategy(stockName, limit, stockService);
